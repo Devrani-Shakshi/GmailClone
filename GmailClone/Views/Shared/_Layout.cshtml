@@ -1,0 +1,99 @@
+﻿
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - GmailClone</title>
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/GmailClone.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://jsdelivr.net" />
+    <link rel="stylesheet" href="https://jsdelivr.net" />
+</head>
+<body>
+    <!-- Top Search Bar -->
+    <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand text-danger fw-bold" href="#">Gmail Clone</a>
+            <form class="d-flex flex-grow-1 mx-4" method="get" action="/Email/Inbox">
+                <input class="form-control me-2 bg-light border-0" type="search" name="search" placeholder="Search mail" aria-label="Search">
+            </form>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-2 d-none d-md-block sidebar pt-3">
+                <button class="btn btn-light shadow-sm px-4 py-3 mb-4 rounded-4 text-primary fw-bold" data-bs-toggle="modal" data-bs-target="#composeModal">
+                    <i class="bi bi-pencil-fill me-2"></i> Compose
+                </button>
+                <div class="nav flex-column nav-pills">
+                    <a class="nav-link active" href="/Email/Inbox"><i class="bi bi-inbox me-3"></i> Inbox</a>
+                    <a class="nav-link" href="/Email/Starred"><i class="bi bi-star me-3"></i> Starred</a>
+                    <a class="nav-link" href="/Email/Sent"><i class="bi bi-send me-3"></i> Sent</a>
+                    <a class="nav-link" href="/Email/Spam"><i class="bi bi-exclamation-octagon me-3"></i> Spam</a>
+                    <a class="nav-link" href="/Email/Trash"><i class="bi bi-trash me-3"></i> Trash</a>
+                </div>
+            </nav>
+
+            <!-- Content Area -->
+            <main class="col-md-10 p-0">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <!-- COMPOSE MODAL (Popup) -->
+    <div class="modal fade" id="composeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content shadow-lg">
+                <div class="modal-header bg-dark text-white p-2 px-3">
+                    <h6 class="modal-title">New Message</h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="/Email/Send" method="post" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        <input type="email" name="To" class="form-control border-0 border-bottom mb-2" placeholder="To" required />
+                        <input type="email" name="Cc" class="form-control border-0 border-bottom mb-2" placeholder="Cc" />
+                        <input type="text" name="Subject" class="form-control border-0 border-bottom mb-2" placeholder="Subject" />
+                        <textarea name="Body" class="form-control border-0" rows="10" placeholder="Message body"></textarea>
+                    </div>
+                    <div class="modal-footer d-flex justify-content-between">
+                    @*     <div>
+                            <button type="submit" class="btn btn-primary px-4 rounded-pill">Send</button>
+                            <label class="btn btn-light rounded-circle ms-2">
+                                <i class="bi bi-paperclip"></i>
+                                <input type="file" name="Attachment" hidden />
+                            </label>
+                        </div>
+                        <button type="button" class="btn btn-light text-muted" data-bs-dismiss="modal"><i class="bi bi-trash"></i></button>
+                    </div> *@
+
+
+
+                    <!-- File Input -->
+                    <div class="mt-3">
+                        <label>Attach File:</label>
+                        <input type="file" name="Attachment" class="form-control" />
+                    </div>
+           
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Send Email</button>
+            </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://jsdelivr.net"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

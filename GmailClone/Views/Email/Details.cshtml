@@ -1,0 +1,34 @@
+﻿@model GmailClone.Models.EmailMessage
+
+<div class="p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4>@Model.Subject</h4>
+        <div class="btn-group">
+            <button class="btn btn-light border"><i class="bi bi-reply-fill"></i> Reply</button>
+            <button class="btn btn-light border"><i class="bi bi-trash"></i> Delete</button>
+        </div>
+    </div>
+    
+    <div class="d-flex mb-3">
+        <div class="rounded-circle bg-secondary text-white p-3 me-3">@Model.From[0]</div>
+        <div>
+             <strong>@Model.From</strong> <span class="text-muted small">&lt;@Model.From &gt;</span> 
+            <div class="text-muted small">To: @Model.To</div>
+        </div>
+        <div class="ms-auto text-muted small">@Model.DateSent.ToString("f")</div>
+    </div>
+
+    <div class="mt-4" style="line-height: 1.6;">
+        @Model.Body
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.AttachmentPath))
+    {
+        <div class="mt-5 pt-3 border-top">
+            <h6><i class="bi bi-paperclip"></i> Attachment</h6>
+            <a href="@Model.AttachmentPath" class="btn btn-outline-secondary btn-sm" download>
+                Download Attachment
+            </a>
+        </div>
+    }
+</div>
