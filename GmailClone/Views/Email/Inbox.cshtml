@@ -1,49 +1,113 @@
-﻿@* @model IEnumerable<GmailClone.Models.EmailMessage>
-
-<div class="table-responsive">
-    <table class="table table-hover mb-0">
-        <tbody>
-            @foreach (var email in Model)
-            {
-                <tr class="@(email.IsRead ? "" : "unread") border-bottom" style="cursor:pointer;" onclick="location.href='/Email/Details/@email.Id'">
-                    <td style="width: 50px;" class="ps-3">
-                        <input type="checkbox" class="form-check-input" />
-                        <i class="bi @(email.IsStarred ? "bi-star-fill text-warning" : "bi-star") ms-2"></i>
-                    </td>
-                    <td style="width: 200px;">@email.From</td>
-                    <td>
-                        <span class="fw-bold">@email.Subject</span> -
-                        <span class="text-muted">@email.Body.Substring(0, Math.Min(email.Body.Length, 50))...</span>
-                    </td>
-                    <td class="text-end pe-3 text-muted" style="width: 100px;">
-                        @email.DateSent.ToString("MMM dd")
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-</div> *@
-
-
+﻿
 @model IEnumerable<GmailClone.Models.EmailMessage>
 @{
     ViewData["Title"] = "Inbox";
 }
 
-<div class="p-3 border-bottom bg-white sticky-top" style="top: 56px;">
-    <h5 class="m-0"><i class="bi bi-inbox me-2"></i> Inbox</h5>
+<style>
+    /* Custom styles for interactive rows */
+    .mail-row {
+        transition: all 0.2s ease;
+        border-left: 4px solid transparent;
+        cursor: pointer;
+    }
+
+        .mail-row:hover {
+            background-color: rgba(118, 75, 162, 0.03) !important;
+            transform: scale(1.002);
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
+        }
+    /* Indicator for Unseen Emails */
+    .unread-indicator {
+        border-left: 4px solid #764ba2 !important;
+        background-color: #fcfaff !important;
+    }
+
+    .star-btn {
+        transition: transform 0.2s;
+        display: inline-block;
+    }
+
+        .star-btn:hover {
+            transform: scale(1.3);
+        }
+
+    .text-truncate-custom {
+        max-width: 500px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+</style>
+
+<!-- Header Area -->
+<div class="d-flex justify-content-between align-items-center p-4 border-bottom bg-light sticky-top" style="top: 0; z-index: 10;">
+    <div class="d-flex align-items-center">
+        <h5 class="m-0 fw-bold text-dark card-header"><i class="bi bi-layers-fill me-2 text-primary"></i> Inbox</h5>
+        <span class="badge rounded-pill bg-light text-primary ms-3 border">@Model.Count(e => !e.IsRead) New</span>
+    </div>
+    <div class="btn-group shadow-sm rounded-3">
+        <a href="/Email/SyncInbox" class="btn btn-light border-0"><i class="bi bi-arrow-clockwise"></i></a>
+    </div>
 </div>
 
 <div class="table-responsive">
-    <table class="table table-hover">
+    <table class="table table-hover align-middle mb-0">
         <tbody>
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="4" class="text-center py-5">
+                        <img src="https://flaticon.com" width="100" class="opacity-25 mb-3">
+                        <p class="text-muted">Your inbox is empty. Enjoy the peace!</p>
+                    </td>
+                </tr>
+            }
+
             @foreach (var email in Model)
             {
-                <tr class="@(email.IsRead ? "text-muted" : "fw-bold bg-light") border-bottom" onclick="location.href='/Email/Details/@email.Id'" style="cursor:pointer;">
-                    <td style="width: 50px;" class="ps-3"><input type="checkbox" class="form-check-input"></td>
-                    <td style="width: 200px;">@email.From</td>
-                    <td>@email.Subject - <span class="fw-normal text-muted">@email.Body.Substring(0, Math.Min(20, email.Body.Length))...</span></td>
-                    <td class="text-end pe-3">@email.DateSent.ToString("MMM dd")</td>
+                <tr class="mail-row @(email.IsRead ? "text-muted" : "unread-indicator")" onclick="location.href='/Email/Details/@email.Id'">
+
+                    <!-- Star Column (Stop Propagation so clicking star doesn't open the email) -->
+                    <td style="width: 60px;" class="ps-4">
+                        <a href="/Email/ToggleStar/@email.Id" class="star-btn" onclick="event.stopPropagation();">
+                            @if (email.IsStarred)
+                            {
+                                <i class="bi bi-star-fill text-warning fs-5"></i>
+                            }
+                            else
+                            {
+                                <i class="bi bi-star text-muted fs-5"></i>
+                            }
+                        </a>
+                    </td>
+
+                    <!-- Sender Circle + Name -->
+                    <td style="width: 220px;">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-3 border" style="width: 35px; height: 35px; font-size: 0.8rem; font-weight: bold;">
+                                @email.From.Substring(0, 1).ToUpper()
+                            </div>
+                            <span class="@(email.IsRead ? "" : "fw-bold text-dark")">@email.From</span>
+                        </div>
+                    </td>
+
+                    <!-- Subject and Preview -->
+                    <td>
+                        <div class="text-truncate-custom">
+                            <span class="@(email.IsRead ? "text-muted" : "text-dark fw-bold")">@email.Subject</span>
+                            <span class="text-muted fw-normal ms-2"> — @(email.Body.Length > 60 ? email.Body.Substring(0, 60) + "..." : email.Body)</span>
+                        </div>
+                    </td>
+
+                    <!-- Date & Attachment Icon -->
+                    <td class="text-end pe-4 small text-muted" style="width: 150px;">
+                        @if (!string.IsNullOrEmpty(email.AttachmentPath))
+                        {
+                            <i class="bi bi-paperclip me-2"></i>
+                        }
+                        @email.DateSent.ToString("MMM dd")
+                    </td>
                 </tr>
             }
         </tbody>

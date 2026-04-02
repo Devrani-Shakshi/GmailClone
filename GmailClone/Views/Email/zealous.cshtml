@@ -1,0 +1,132 @@
+﻿
+@model IEnumerable<GmailClone.Models.EmailMessage>
+@{
+    ViewData["Title"] = "Zealous Category";
+}
+
+<style>
+    /* Zealous specific styling */
+    .zealous-card {
+        background: white;
+        border-radius: 16px;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        border: 1px solid rgba(118, 75, 162, 0.08);
+        margin-bottom: 12px;
+    }
+
+        .zealous-card:hover {
+            transform: translateX(8px);
+            background: linear-gradient(90deg, #ffffff 0%, #fdfaff 100%);
+            box-shadow: 0 10px 20px rgba(118, 75, 162, 0.05);
+            border-left: 5px solid #764ba2;
+        }
+
+    .icon-box {
+        width: 45px;
+        height: 45px;
+        background: rgba(118, 75, 162, 0.1);
+        color: #764ba2;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .badge-zealous {
+        background: #764ba2;
+        color: white;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 5px 12px;
+    }
+</style>
+
+<div class="p-4">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h2 class="fw-bold text-dark m-0">
+                <i class="bi bi- stars text-primary me-2"></i> Zealous Smart Folder
+            </h2>
+            <p class="text-muted small m-0">Automatically categorized messages containing "Zealous"</p>
+        </div>
+        <div class="text-end">
+            <span class="badge rounded-pill badge-zealous shadow-sm">
+                @Model.Count() Archived Matches
+            </span>
+        </div>
+    </div>
+
+    <!-- Content Section -->
+    <div class="zealous-list">
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5">
+                <div class="mb-3">
+                    <i class="bi bi-folder2-open display-1 text-light"></i>
+                </div>
+                <h4 class="text-muted">No Zealous matches found.</h4>
+                <p class="text-secondary">Read emails from the Inbox to trigger the smart filter.</p>
+                <a href="/Email/Inbox" class="btn btn-outline-primary rounded-pill px-4 mt-3">Go to Inbox</a>
+            </div>
+        }
+        else
+        {
+            @foreach (var email in Model)
+            {
+                <div class="zealous-card p-3 shadow-sm" onclick="location.href='/Email/Details/@email.Id'" style="cursor:pointer;">
+                    <div class="row align-items-center">
+                        <!-- Icon Column -->
+                        <div class="col-auto">
+                            <div class="icon-box">
+                                <i class="bi bi-shield-check fs-4"></i>
+                            </div>
+                        </div>
+
+                        <!-- Content Column -->
+                        <div class="col">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-bold text-dark">@email.From</span>
+                                <span class="text-muted small">@email.DateSent.ToString("MMM dd, yyyy")</span>
+                            </div>
+                            <div class="d-flex align-items-center mt-1">
+                                <span class="text-dark fw-semibold me-2">@email.Subject</span>
+                                <span class="text-muted small text-truncate d-inline-block" style="max-width: 400px;">
+                                    — @(email.Body.Length > 80 ? email.Body.Substring(0, 80) + "..." : email.Body)
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Action/Status Column -->
+                        <div class="col-auto text-end">
+                            <div class="d-flex align-items-center">
+                                @if (!string.IsNullOrEmpty(email.AttachmentPath))
+                                {
+                                    <i class="bi bi-paperclip text-muted me-3"></i>
+                                }
+                                <i class="bi bi-chevron-right text-light fs-5"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<script>
+    // Optional: Add a subtle entry animation for cards
+    document.addEventListener("DOMContentLoaded", function() {
+        const cards = document.querySelectorAll('.zealous-card');
+        cards.forEach((card, index) => {
+            card.style.opacity = "0";
+            card.style.transform = "translateY(20px)";
+            setTimeout(() => {
+                card.style.transition = "all 0.4s ease";
+                card.style.opacity = "1";
+                card.style.transform = "translateY(0)";
+            }, index * 100);
+        });
+    });
+</script>

@@ -1,4 +1,4 @@
-﻿
+﻿@* 
 
 <!DOCTYPE html>
 <html lang="en">
@@ -10,33 +10,47 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/GmailClone.styles.css" asp-append-version="true" />
-    <link rel="stylesheet" href="https://jsdelivr.net" />
-    <link rel="stylesheet" href="https://jsdelivr.net" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 </head>
+
 <body>
     <!-- Top Search Bar -->
-    <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom sticky-top">
+     <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom sticky-top">
         <div class="container-fluid">
             <a class="navbar-brand text-danger fw-bold" href="#">Gmail Clone</a>
+
             <form class="d-flex flex-grow-1 mx-4" method="get" action="/Email/Inbox">
-                <input class="form-control me-2 bg-light border-0" type="search" name="search" placeholder="Search mail" aria-label="Search">
+                <input class="form-control me-2 bg-light border-0" type="search" name="search" placeholder="Search mail">
+                <button class="btn btn-outline-secondary" type="submit">Search</button>
             </form>
+
+
+
         </div>
     </nav>
 
-    <div class="container-fluid">
+    <div class="container-fluid ">
         <div class="row">
             <!-- Sidebar -->
-            <nav class="col-md-2 d-none d-md-block sidebar pt-3">
+            <nav class="col-md-2 d-none d-md-block sidebar pt-3 ">
                 <button class="btn btn-light shadow-sm px-4 py-3 mb-4 rounded-4 text-primary fw-bold" data-bs-toggle="modal" data-bs-target="#composeModal">
                     <i class="bi bi-pencil-fill me-2"></i> Compose
                 </button>
-                <div class="nav flex-column nav-pills">
-                    <a class="nav-link active" href="/Email/Inbox"><i class="bi bi-inbox me-3"></i> Inbox</a>
-                    <a class="nav-link" href="/Email/Starred"><i class="bi bi-star me-3"></i> Starred</a>
-                    <a class="nav-link" href="/Email/Sent"><i class="bi bi-send me-3"></i> Sent</a>
-                    <a class="nav-link" href="/Email/Spam"><i class="bi bi-exclamation-octagon me-3"></i> Spam</a>
-                    <a class="nav-link" href="/Email/Trash"><i class="bi bi-trash me-3"></i> Trash</a>
+                <div class="nav flex-column text-start">
+                    @{
+                        string currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+                        Func<string, string> IsActive = (action) => currentAction == action ? "active-folder" : "";
+                    }
+                    <a class="nav-link @IsActive("Inbox")" href="/Email/Inbox"><i class="bi bi-layers me-3"></i> Inbox</a>
+                    <a class="nav-link @IsActive("Starred")" href="/Email/Starred"><i class="bi bi-star me-3"></i> Starred</a>
+                    <a class="nav-link @IsActive("Sent")" href="/Email/Sent"><i class="bi bi-send me-3"></i> Sent</a>
+                    <a class="nav-link @IsActive("Spam")" href="/Email/Spam"><i class="bi bi-shield-exclamation me-3"></i> Spam</a>
+                    <a class="nav-link @IsActive("Trash")" href="/Email/Trash"><i class="bi bi-trash3 me-3"></i> Trash</a>
+                    <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Zealous" ? "active-folder" : "")" href="/Email/Zealous">
+                        <i class="bi bi-folder-fill me-3"></i> Zealous
+                    </a>
+
                 </div>
             </nav>
 
@@ -51,8 +65,8 @@
     <div class="modal fade" id="composeModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content shadow-lg">
-                <div class="modal-header bg-dark text-white p-2 px-3">
-                    <h6 class="modal-title">New Message</h6>
+                <div class="modal-header bg-info text-white p-2 px-3">
+                    <h6 class="modal-title">New Email</h6>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <form action="/Email/Send" method="post" enctype="multipart/form-data">
@@ -63,19 +77,6 @@
                         <textarea name="Body" class="form-control border-0" rows="10" placeholder="Message body"></textarea>
                     </div>
                     <div class="modal-footer d-flex justify-content-between">
-                    @*     <div>
-                            <button type="submit" class="btn btn-primary px-4 rounded-pill">Send</button>
-                            <label class="btn btn-light rounded-circle ms-2">
-                                <i class="bi bi-paperclip"></i>
-                                <input type="file" name="Attachment" hidden />
-                            </label>
-                        </div>
-                        <button type="button" class="btn btn-light text-muted" data-bs-dismiss="modal"><i class="bi bi-trash"></i></button>
-                    </div> *@
-
-
-
-                    <!-- File Input -->
                     <div class="mt-3">
                         <label>Attach File:</label>
                         <input type="file" name="Attachment" class="form-control" />
@@ -88,9 +89,205 @@
                 </form>
             </div>
         </div>
-    </div>
+    </div> 
+
 
     <script src="https://jsdelivr.net"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>  *@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - GmailClone</title>
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/GmailClone.styles.css" asp-append-version="true" />
+    <!-- Keep your existing CDN imports -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <style>
+        /* Modern Sweet UI Styling */
+        body {
+            background-color: #f0f4f9; /* Sweet light blue background */
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Top Navbar */
+        .navbar {
+            background: rgba(255, 255, 255, 0.8) !important;
+            backdrop-filter: blur(10px);
+            padding: 0.8rem 1.5rem;
+        }
+
+        .search-box {
+            background: #eaf1fb;
+            border-radius: 24px;
+            padding: 5px 15px;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            height: calc(100vh - 70px);
+            padding: 15px;
+        }
+
+        .btn-compose-custom {
+            background-color: #c2e7ff;
+            color: #001d35;
+            transition: all 0.3s;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 16px;
+        }
+
+            .btn-compose-custom:hover {
+                background-color: #b3d7ef;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
+
+        /* Navigation Links */
+        .nav-link {
+            color: #444746;
+            padding: 10px 20px !important;
+            margin-bottom: 4px;
+            border-radius: 20px !important;
+            font-size: 0.95rem;
+            transition: 0.2s;
+        }
+
+            .nav-link:hover {
+                background-color: #e1e3e1;
+            }
+
+        .active-folder {
+            background-color: #d3e3fd !important;
+            color: #041e49 !important;
+            font-weight: bold;
+        }
+
+        /* Main Content "Sheet" */
+        main {
+            background: white;
+            border-radius: 24px 0 0 0; /* Modern curved corner */
+            min-height: calc(100vh - 75px);
+            box-shadow: -5px 0 15px rgba(0,0,0,0.02);
+            padding: 20px;
+        }
+
+        /* Modal Customization */
+        .modal-content {
+            border-radius: 15px;
+            border: none;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid #eee;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Top Navbar -->
+    <nav class="navbar navbar-expand-sm navbar-light border-bottom sticky-top shadow-sm">
+        <div class="container-fluid">
+            <a class="navbar-brand text-danger fw-bold fs-4 d-flex align-items-center" href="/Email/Inbox">
+                <i class="bi bi-envelope-heart-fill me-2"></i> Gmail Clone
+            </a>
+
+            <div class="search-box d-flex flex-grow-1 mx-5 shadow-sm">
+                <i class="bi bi-search text-muted mt-2 me-2"></i>
+                <form class="w-100" method="get" action="/Email/Inbox">
+                    <input class="form-control border-0 bg-transparent" type="search" name="search" placeholder="Search mail, subject or sender...">
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-2 d-none d-md-block sidebar">
+                <button class="btn btn-compose-custom shadow-sm mb-4 w-100 fw-bold" data-bs-toggle="modal" data-bs-target="#composeModal">
+                    <i class="bi bi-pencil-square me-2"></i> Compose
+                </button>
+
+                <div class="nav flex-column text-start mt-2">
+                    @{
+                        string currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+                        Func<string, string> IsActive = (action) => currentAction == action ? "active-folder" : "";
+                    }
+                    <a class="nav-link @IsActive("Inbox")" href="/Email/Inbox"><i class="bi bi-inbox-fill me-3"></i> Inbox</a>
+                    <a class="nav-link @IsActive("Starred")" href="/Email/Starred"><i class="bi bi-star-fill me-3"></i> Starred</a>
+                    <a class="nav-link @IsActive("Sent")" href="/Email/Sent"><i class="bi bi-send-fill me-3"></i> Sent</a>
+                    <a class="nav-link @IsActive("Spam")" href="/Email/Spam"><i class="bi bi-exclamation-circle-fill me-3"></i> Spam</a>
+                    <a class="nav-link @IsActive("Trash")" href="/Email/Trash"><i class="bi bi-trash3-fill me-3"></i> Trash</a>
+                    <a class="nav-link @(currentAction == "Zealous" ? "active-folder" : "")" href="/Email/Zealous">
+                        <i class="bi bi-folder-symlink-fill me-3"></i> Zealous
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Content Area -->
+            <main class="col-md-10 p-0">
+                <div class="p-3">
+                    @RenderBody()
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- COMPOSE MODAL -->
+    <div class="modal fade" id="composeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content shadow-lg border-0">
+                <div class="modal-header bg-light text-dark p-3 px-4">
+                    <h6 class="modal-title fw-bold">New Message</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="/Email/Send" method="post" enctype="multipart/form-data">
+                    <div class="modal-body p-4">
+                        <div class="mb-2 border-bottom">
+                            <input type="email" name="To" class="form-control border-0 p-2" placeholder="To" required />
+                        </div>
+                        <div class="mb-2 border-bottom">
+                            <input type="email" name="Cc" class="form-control border-0 p-2" placeholder="Cc" />
+                        </div>
+                        <div class="mb-2 border-bottom">
+                            <input type="text" name="Subject" class="form-control border-0 p-2" placeholder="Subject" />
+                        </div>
+                        <textarea name="Body" class="form-control border-0 mt-3" rows="10" placeholder="Write your message here..."></textarea>
+                    </div>
+                    <div class="modal-footer border-0 p-3 bg-light d-flex justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm me-3">Send Now</button>
+                            <label class="btn btn-outline-secondary rounded-circle" style="cursor:pointer" title="Attach a file">
+                                <i class="bi bi-paperclip"></i>
+                                <input type="file" name="Attachment" class="d-none" />
+                            </label>
+                        </div>
+                        <button type="button" class="btn text-muted" data-bs-dismiss="modal">  <i class="fa fa-close"></i></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+    <!-- Your existing scripts -->
+    @* <script src="https://jsdelivr.net"></script> *@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

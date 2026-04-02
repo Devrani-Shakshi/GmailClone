@@ -4,6 +4,7 @@ using GmailClone.Models;
 using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Net.Smtp;
+using MailKit.Search;
 using MimeKit;
 using System.Net.Mail;
 
@@ -39,53 +40,58 @@ namespace GmailClone.Service
             using var client = new MailKit.Net.Smtp.SmtpClient();
 
             await client.ConnectAsync("smtp.gmail.com", 587, false);
-            await client.AuthenticateAsync("shakshi@zealousys.com", "hjih xbhd fagc lyyx");
+            await client.AuthenticateAsync("<your_Email", "<your_password>");
             await client.SendAsync(message);
             await client.DisconnectAsync(true);
 
             _context.Emails.Add(email);
             await _context.SaveChangesAsync();
         }
+       
+
         public async Task<List<EmailMessage>> ReceiveEmailsAsync()
         {
             var emails = new List<EmailMessage>();
             using var client = new ImapClient();
 
-            // Use your IMAP settings (e.g., imap.gmail.com, 993)
             await client.ConnectAsync("imap.gmail.com", 993, true);
-            await client.AuthenticateAsync("shakshi@zealousys.com", "hjih xbhd fagc lyyx");
+            await client.AuthenticateAsync("your_Email", "\"<your_password>");
 
             var inbox = client.Inbox;
-            await inbox.OpenAsync(FolderAccess.ReadOnly);
+            await inbox.OpenAsync(FolderAccess.ReadWrite); // Use ReadWrite so we can mark them as read later if needed
 
-            // Fetch the last 10 emails
-            for (int i = inbox.Count - 1; i >= Math.Max(0, inbox.Count - 10); i--)
+            // SEARCH for Unread messages specifically
+            var results = await inbox.SearchAsync(SearchQuery.NotSeen);
+
+            // Limit to the most recent 10 unread emails
+            foreach (var uid in results.TakeLast(10))
             {
-                var message = await inbox.GetMessageAsync(i);
+                var message = await inbox.GetMessageAsync(uid);
+
                 var email = new EmailMessage
                 {
                     From = message.From.ToString(),
-                    Subject = message.Subject,
-                    Body = message.HtmlBody ?? message.TextBody,
+                    To = "your_Email", // Your local user
+                    Subject = message.Subject ?? "(No Subject)",
+                    Body = message.HtmlBody ?? message.TextBody ?? "",
                     DateSent = message.Date.DateTime,
-                    IsRead = false // Default to Unseen
+                    IsRead = false
                 };
 
-                // FIX: Handle Incoming Attachments
-                if (message.Attachments.Any())
+                // Attachment Logic (Ensure folder exists)
+                var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+                if (!Directory.Exists(uploadPath)) Directory.CreateDirectory(uploadPath);
+
+                foreach (var attachment in message.Attachments)
                 {
-                    foreach (var attachment in message.Attachments)
+                    if (attachment is MimePart part)
                     {
-                        if (attachment is MimePart part)
+                        var filePath = Path.Combine(uploadPath, part.FileName);
+                        using (var stream = File.Create(filePath))
                         {
-                            var fileName = part.FileName;
-                            var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads", fileName);
-                            using (var stream = File.Create(path))
-                            {
-                                await part.Content.DecodeToAsync(stream);
-                            }
-                            email.AttachmentPath = "/uploads/" + fileName;
+                            await part.Content.DecodeToAsync(stream);
                         }
+                        email.AttachmentPath = "/uploads/" + part.FileName;
                     }
                 }
                 emails.Add(email);
@@ -94,6 +100,7 @@ namespace GmailClone.Service
             await client.DisconnectAsync(true);
             return emails;
         }
+
 
     }
 

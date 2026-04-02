@@ -1,22 +1,115 @@
-﻿@model IEnumerable<GmailClone.Models.EmailMessage>
+﻿
+@model IEnumerable<GmailClone.Models.EmailMessage>
 @{
-    ViewData["Title"] = "Starred";
+    ViewData["Title"] = "Starred Messages";
 }
 
-<div class="p-3 border-bottom bg-white sticky-top" style="top: 56px;">
-    <h5 class="m-0"><i class="bi bi-star-fill text-warning me-2"></i> Starred</h5>
+<style>
+    /* Starred folder specific styling */
+    .starred-row {
+        transition: all 0.3s ease;
+        border-left: 4px solid transparent;
+        background: white;
+    }
+
+        .starred-row:hover {
+            background-color: #fffdf5 !important; /* Very soft yellow tint */
+            border-left: 4px solid #ffc107; /* Gold/Amber */
+            transform: scale(1.005);
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.1);
+        }
+
+    .star-icon-glow {
+        color: #ffc107;
+        filter: drop-shadow(0 0 5px rgba(255, 193, 7, 0.4));
+        transition: transform 0.2s ease;
+    }
+
+    .starred-row:hover .star-icon-glow {
+        transform: rotate(72deg) scale(1.2);
+    }
+
+    .important-badge {
+        background: rgba(255, 193, 7, 0.15);
+        color: #856404;
+        font-weight: 600;
+        font-size: 0.75rem;
+        padding: 3px 10px;
+        border-radius: 6px;
+    }
+</style>
+
+<!-- Header Area -->
+<div class="d-flex justify-content-between align-items-center p-4 border-bottom bg-white sticky-top" style="top: 0; z-index: 10;">
+    <div class="d-flex align-items-center">
+        <div class="bg-warning bg-opacity-10 p-2 rounded-3 me-3">
+            <i class="bi bi-star-fill text-warning fs-5"></i>
+        </div>
+        <div>
+            <h5 class="m-0 fw-bold text-dark">Starred</h5>
+            <p class="text-muted small mb-0">Important messages you've bookmarked</p>
+        </div>
+    </div>
+    <span class="badge rounded-pill bg-warning text-dark px-3 py-2 shadow-sm">
+        @Model.Count() Bookmarks
+    </span>
 </div>
 
 <div class="table-responsive">
-    <table class="table table-hover">
+    <table class="table table-hover align-middle mb-0">
         <tbody>
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="4" class="text-center py-5">
+                        <div class="mb-3">
+                            <i class="bi bi-star display-1 text-light"></i>
+                        </div>
+                        <h5 class="text-muted">No starred messages yet.</h5>
+                        <p class="text-secondary small">Star messages to keep track of what's important.</p>
+                        <a href="/Email/Inbox" class="btn btn-outline-warning rounded-pill px-4 mt-2 btn-sm">Browse Inbox</a>
+                    </td>
+                </tr>
+            }
+
             @foreach (var email in Model)
             {
-                <tr class="border-bottom" onclick="location.href='/Email/Details/@email.Id'" style="cursor:pointer;">
-                    <td style="width: 50px;" class="ps-3"><i class="bi bi-star-fill text-warning"></i></td>
-                    <td style="width: 200px;">@email.From</td>
-                    <td>@email.Subject</td>
-                    <td class="text-end pe-3">@email.DateSent.ToString("MMM dd")</td>
+                <tr class="starred-row border-bottom" onclick="location.href='/Email/Details/@email.Id'" style="cursor:pointer;">
+
+                    <!-- Star Column (Toggles back if clicked) -->
+                    <td style="width: 60px;" class="ps-4">
+                        <a href="/Email/ToggleStar/@email.Id" onclick="event.stopPropagation();" class="text-decoration-none">
+                            <i class="bi bi-star-fill star-icon-glow fs-5"></i>
+                        </a>
+                    </td>
+
+                    <!-- Sender Column -->
+                    <td style="width: 220px;">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-warning bg-opacity-10 text-warning d-flex align-items-center justify-content-center me-3 border border-warning border-opacity-25" style="width: 35px; height: 35px; font-weight: bold;">
+                                @email.From.Substring(0, 1).ToUpper()
+                            </div>
+                            <span class="fw-bold text-dark">@email.From</span>
+                        </div>
+                    </td>
+
+                    <!-- Subject and Preview -->
+                    <td>
+                        <div class="text-truncate" style="max-width: 500px;">
+                            <span class="important-badge me-2">IMPORTANT</span>
+                            <span class="text-dark fw-bold">@email.Subject</span>
+                            <span class="text-muted fw-normal"> — @(email.Body.Length > 60 ? email.Body.Substring(0, 60) + "..." : email.Body)</span>
+                        </div>
+                    </td>
+
+                    <!-- Date & Attachment -->
+                    <td class="text-end pe-4 text-muted small" style="width: 140px;">
+                        @if (!string.IsNullOrEmpty(email.AttachmentPath))
+                        {
+                            <i class="bi bi-paperclip me-2"></i>
+                        }
+                        @email.DateSent.ToString("MMM dd")
+                    </td>
                 </tr>
             }
         </tbody>

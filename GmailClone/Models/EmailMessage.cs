@@ -22,6 +22,7 @@
         public bool IsSpam { get; set; }
         public bool IsTrash { get; set; }
         public string? AttachmentPath { get; set; }
+        public bool IsZealous { get; set; } 
     }
 
 }

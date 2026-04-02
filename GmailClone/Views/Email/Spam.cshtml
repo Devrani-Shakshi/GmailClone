@@ -1,22 +1,113 @@
-﻿@model IEnumerable<GmailClone.Models.EmailMessage>
+﻿
+@model IEnumerable<GmailClone.Models.EmailMessage>
 @{
-    ViewData["Title"] = "Spam";
+    ViewData["Title"] = "Spam Filter";
 }
 
-<div class="p-3 border-bottom bg-white sticky-top" style="top: 56px;">
-    <h5 class="m-0 text-danger"><i class="bi bi-exclamation-octagon me-2"></i> Spam</h5>
+<style>
+    /* Spam folder specific styling */
+    .spam-row {
+        transition: all 0.25s ease;
+        border-left: 4px solid transparent;
+        background: #fffdfd; /* Very subtle red tint */
+    }
+
+        .spam-row:hover {
+            background-color: #fff5f5 !important;
+            border-left: 4px solid #dc3545; /* Red Alert */
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.08);
+        }
+
+    .shield-icon {
+        color: #dc3545;
+        opacity: 0.7;
+        transition: all 0.3s;
+    }
+
+    .spam-row:hover .shield-icon {
+        transform: scale(1.2);
+        opacity: 1;
+        filter: drop-shadow(0 0 3px rgba(220, 53, 69, 0.3));
+    }
+
+    .warning-badge {
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+        font-weight: 600;
+        font-size: 0.7rem;
+        padding: 2px 8px;
+        border-radius: 4px;
+        text-transform: uppercase;
+    }
+</style>
+
+<!-- Header Area -->
+<div class="d-flex justify-content-between align-items-center p-4 border-bottom bg-white sticky-top" style="top: 0; z-index: 10;">
+    <div class="d-flex align-items-center">
+        <div class="bg-danger bg-opacity-10 p-2 rounded-3 me-3">
+            <i class="bi bi-shield-lock-fill text-danger fs-5"></i>
+        </div>
+        <div>
+            <h5 class="m-0 fw-bold text-dark">Spam</h5>
+            <p class="text-muted small mb-0">Filtered messages that look suspicious</p>
+        </div>
+    </div>
+    <div class="text-end">
+        <button class="btn btn-outline-danger btn-sm rounded-pill px-3 shadow-sm">
+            <i class="bi bi-eraser me-1"></i> Empty Spam Now
+        </button>
+    </div>
 </div>
 
 <div class="table-responsive">
-    <table class="table table-hover">
+    <table class="table table-hover align-middle mb-0">
         <tbody>
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="4" class="text-center py-5">
+                        <div class="mb-3">
+                            <i class="bi bi-shield-check display-1 text-success opacity-25"></i>
+                        </div>
+                        <h5 class="text-muted">Hooray! No spam here.</h5>
+                        <p class="text-secondary small">Your filters are keeping your inbox clean.</p>
+                    </td>
+                </tr>
+            }
+
             @foreach (var email in Model)
             {
-                <tr class="border-bottom bg-light" onclick="location.href='/Email/Details/@email.Id'" style="cursor:pointer;">
-                    <td style="width: 50px;" class="ps-3"><i class="bi bi-shield-fill-exclamation text-danger"></i></td>
-                    <td style="width: 200px;">@email.From</td>
-                    <td>@email.Subject</td>
-                    <td class="text-end pe-3 text-muted">@email.DateSent.ToShortDateString()</td>
+                <tr class="spam-row border-bottom" onclick="location.href='/Email/Details/@email.Id'" style="cursor:pointer;">
+
+                    <!-- Icon Column -->
+                    <td style="width: 60px;" class="ps-4">
+                        <i class="bi bi-shield-fill-exclamation shield-icon fs-5"></i>
+                    </td>
+
+                    <!-- Sender Column -->
+                    <td style="width: 220px;">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-danger bg-opacity-10 text-danger d-flex align-items-center justify-content-center me-3 border border-danger border-opacity-25" style="width: 35px; height: 35px; font-weight: bold; font-size: 0.8rem;">
+                                ?
+                            </div>
+                            <span class="text-dark">@email.From</span>
+                        </div>
+                    </td>
+
+                    <!-- Subject and Preview -->
+                    <td>
+                        <div class="text-truncate" style="max-width: 500px;">
+                            <span class="warning-badge me-2">Suspicious</span>
+                            <span class="text-dark fw-bold">@email.Subject</span>
+                            <span class="text-muted fw-normal"> — @(email.Body.Length > 60 ? email.Body.Substring(0, 60) + "..." : email.Body)</span>
+                        </div>
+                    </td>
+
+                    <!-- Date & Attachment -->
+                    <td class="text-end pe-4 text-muted small" style="width: 140px;">
+                        @email.DateSent.ToString("MMM dd, yyyy")
+                    </td>
                 </tr>
             }
         </tbody>

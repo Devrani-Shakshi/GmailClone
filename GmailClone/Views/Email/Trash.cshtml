@@ -1,24 +1,120 @@
-﻿@model IEnumerable<GmailClone.Models.EmailMessage>
+﻿
+
+@model IEnumerable<GmailClone.Models.EmailMessage>
 @{
-    ViewData["Title"] = "Trash";
+    ViewData["Title"] = "Trash Bin";
 }
 
-<div class="p-3 border-bottom bg-white sticky-top" style="top: 56px;">
-    <h5 class="m-0 text-muted"><i class="bi bi-trash me-2"></i> Trash</h5>
+<style>
+    /* Trash folder specific styling */
+    .trash-row {
+        transition: all 0.2s ease;
+        border-left: 4px solid transparent;
+        background: #fafafa;
+    }
+
+        .trash-row:hover {
+            background-color: #f1f3f4 !important;
+            border-left: 4px solid #6c757d; /* Slate Gray */
+            transform: scale(1.002);
+        }
+
+    .trash-icon-anim {
+        color: #adb5bd;
+        transition: all 0.3s;
+    }
+
+    .trash-row:hover .trash-icon-anim {
+        color: #dc3545; /* Turns red on hover to signal deletion */
+        transform: rotate(15deg);
+    }
+
+    .subject-deleted {
+        text-decoration: line-through;
+        opacity: 0.6;
+    }
+</style>
+
+<!-- Header Area -->
+<div class="d-flex justify-content-between align-items-center p-4 border-bottom bg-white sticky-top" style="top: 0; z-index: 10;">
+    <div class="d-flex align-items-center">
+        <div class="bg-secondary bg-opacity-10 p-2 rounded-3 me-3">
+            <i class="bi bi-trash3-fill text-secondary fs-5"></i>
+        </div>
+        <div>
+            <h5 class="m-0 fw-bold text-dark">Trash</h5>
+            <p class="text-muted small mb-0">Messages deleted in the last 30 days</p>
+        </div>
+    </div>
+    <div class="text-end">
+        <form asp-action="EmptyTrash" method="post" style="display:inline;">
+            <button type="submit" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm">
+                Empty Bin
+            </button>
+        </form>
+    </div>
 </div>
 
 <div class="table-responsive">
-    <table class="table table-hover text-muted">
+    <table class="table table-hover align-middle mb-0">
         <tbody>
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="4" class="text-center py-5">
+                        <div class="mb-3">
+                            <i class="bi bi-recycle display-1 text-light"></i>
+                        </div>
+                        <h5 class="text-muted">Trash is empty.</h5>
+                        <p class="text-secondary small">Everything is clean!</p>
+                    </td>
+                </tr>
+            }
+
             @foreach (var email in Model)
             {
-                <tr class="border-bottom" onclick="location.href='/Email/Details/@email.Id'" style="cursor:pointer;">
-                    <td style="width: 50px;" class="ps-3"><i class="bi bi-trash"></i></td>
-                    <td style="width: 200px;">@email.From</td>
-                    <td><del>@email.Subject</del></td>
-                    <td class="text-end pe-3">@email.DateSent.ToShortDateString()</td>
+                <tr class="trash-row border-bottom" onclick="location.href='/Email/Details/@email.Id'" style="cursor:pointer;">
+
+                    <!-- Icon Column -->
+                    <td style="width: 60px;" class="ps-4">
+                        <i class="bi bi-trash trash-icon-anim fs-5"></i>
+                    </td>
+
+                    <!-- Sender Column -->
+                    <td style="width: 220px;">
+                        <span class="text-muted small">@email.From</span>
+                    </td>
+
+                    <!-- Subject and Restore Action -->
+                    <td>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="text-truncate" style="max-width: 500px;">
+                                <span class="subject-deleted">@email.Subject</span>
+                                <span class="text-muted small fw-normal ms-2"> — Discarded</span>
+                            </div>
+
+                            <!-- Quick Restore (Stops click from opening details) -->
+                            <form asp-action="RestoreFromTrash" asp-route-id="@email.Id" method="post" onclick="event.stopPropagation();">
+                                <button type="submit" class="btn btn-link btn-sm text-decoration-none text-primary opacity-0 hover-visible">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Restore
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+
+                    <!-- Date Column -->
+                    <td class="text-end pe-4 text-muted small" style="width: 140px;">
+                        @email.DateSent.ToString("MMM dd")
+                    </td>
                 </tr>
             }
         </tbody>
     </table>
 </div>
+
+<style>
+    /* Helper to show restore button only on hover */
+    .trash-row:hover .hover-visible {
+        opacity: 1 !important;
+    }
+</style>

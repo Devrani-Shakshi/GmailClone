@@ -1,34 +1,82 @@
-﻿@model GmailClone.Models.EmailMessage
+﻿
+ 
 
-<div class="p-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4>@Model.Subject</h4>
-        <div class="btn-group">
-            <button class="btn btn-light border"><i class="bi bi-reply-fill"></i> Reply</button>
-            <button class="btn btn-light border"><i class="bi bi-trash"></i> Delete</button>
+@model GmailClone.Models.EmailMessage
+
+<div class="p-4 bg-white shadow-sm rounded-3">
+    <!-- Header: Subject and Action Buttons -->
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <h4 class="fw-bold text-dark">@Model.Subject</h4>
+        <div class="btn-group shadow-sm">
+            @if (Model.IsTrash)
+            {
+                <!-- RESTORE BUTTON: Only visible if email is in Trash -->
+                <form asp-action="RestoreFromTrash" asp-route-id="@Model.Id" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn-outline-success">
+                        <i class="bi bi-arrow-counterclockwise"></i> Restore to Inbox
+                    </button>
+                </form>
+
+                <form asp-action="DeleteForever" asp-route-id="@Model.Id" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn-outline-danger ms-1">
+                        <i class="bi bi-x-circle"></i> Delete Forever
+                    </button>
+                </form>
+            }
+            else
+            {
+                <!-- STAR & TRASH: Only visible if NOT in Trash -->
+                <a asp-action="ToggleStar" asp-route-id="@Model.Id" class="btn btn-light border">
+                    <i class="bi @(Model.IsStarred ? "bi-star-fill text-warning" : "bi-star text-muted")"></i>
+                    @(Model.IsStarred ? "Starred" : "Star")
+                </a>
+
+                <form asp-action="MoveToTrash" asp-route-id="@Model.Id" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn-light border text-danger">
+                        <i class="bi bi-trash"></i> Move to Trash
+                    </button>
+                </form>
+            }
         </div>
     </div>
-    
-    <div class="d-flex mb-3">
-        <div class="rounded-circle bg-secondary text-white p-3 me-3">@Model.From[0]</div>
-        <div>
-             <strong>@Model.From</strong> <span class="text-muted small">&lt;@Model.From &gt;</span> 
+
+    <!-- Sender Info -->
+    <div class="d-flex align-items-center mb-4">
+        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold shadow-sm"
+             style="width: 50px; height: 50px; font-size: 1.2rem;">
+            @Model.From[0].ToString().ToUpper()
+        </div>
+        <div class="ms-3">
+            <div class="d-flex align-items-center">
+                <strong class="text-dark me-2">@Model.From</strong>
+                <span class="text-muted small">&lt;@Model.From&gt;</span>
+            </div>
             <div class="text-muted small">To: @Model.To</div>
         </div>
-        <div class="ms-auto text-muted small">@Model.DateSent.ToString("f")</div>
+        <div class="ms-auto text-muted small fst-italic">
+            @Model.DateSent.ToString("f")
+        </div>
     </div>
 
-    <div class="mt-4" style="line-height: 1.6;">
+    <!-- Email Body -->
+    <div class="mt-4 p-3 bg-light rounded-3 border" style="line-height: 1.8; min-height: 200px; white-space: pre-wrap;">
         @Model.Body
     </div>
 
+    <!-- Attachment Section -->
     @if (!string.IsNullOrEmpty(Model.AttachmentPath))
     {
         <div class="mt-5 pt-3 border-top">
-            <h6><i class="bi bi-paperclip"></i> Attachment</h6>
-            <a href="@Model.AttachmentPath" class="btn btn-outline-secondary btn-sm" download>
-                Download Attachment
-            </a>
+            <h6 class="text-secondary mb-3"><i class="bi bi-paperclip"></i> Attachment</h6>
+            <div class="card d-inline-block shadow-sm">
+                <div class="card-body py-2 px-3 d-flex align-items-center">
+                    <i class="bi bi-file-earmark-arrow-down fs-4 text-primary me-2"></i>
+                    <div>
+                        <span class="small d-block text-truncate" style="max-width: 150px;">@System.IO.Path.GetFileName(Model.AttachmentPath)</span>
+                        <a href="@Model.AttachmentPath" class="btn btn-link btn-sm p-0 text-decoration-none" download>Download</a>
+                    </div>
+                </div>
+            </div>
         </div>
     }
 </div>
